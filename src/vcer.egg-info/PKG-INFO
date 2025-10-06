@@ -1,0 +1,43 @@
+Metadata-Version: 2.4
+Name: vcer
+Version: 0.1.0
+Summary: Visual Context Engineering Router: analyze, visualize, optimize, and route prompts to local LLM backends (vLLM/sglang).
+Author: Your Name
+License: Proprietary
+Keywords: LLM,prompt,context-engineering,vllm,sglang,router
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: typer>=0.12
+Requires-Dist: rich>=13.7
+Requires-Dist: pydantic>=2.8
+Requires-Dist: ruamel.yaml>=0.18
+Requires-Dist: httpx>=0.27
+Requires-Dist: jinja2>=3.1
+Requires-Dist: markdown-it-py>=3.0
+
+# VCER (Visual Context Engineering Router)
+
+Windows-friendly Python CLI to analyze, visualize, optimize, and route prompts to local LLM backends (vLLM/sglang). Managed with `uv`.
+
+## Quickstart (uv)
+- Create env: `uv venv`
+- Install deps: `uv sync`
+- Run CLI: `uv run vcer --help`
+
+## Windows (no make)
+- Test routing to Ollama (default endpoint): `./scripts/test.ps1 -Send`
+- Route to any endpoint: `./scripts/run.ps1 http://host:port/v1/chat/completions -Send`
+
+If you prefer GNU Make on Windows, install one of:
+- Git Bash/MSYS2 `make`
+- Chocolatey: `choco install make`
+- Scoop: `scoop install make`
+
+## Core Commands
+- `vcer analyze --in system.md [--user user.md] --out parts.json`
+- `vcer visualize --parts parts.json --format mermaid --out prompt.mmd`
+- `vcer optimize --parts parts.json --out system.opt.md`
+- `vcer route --backend <id|kind> --system system.md --user user.md [--send]`
+- `vcer dry-run --system system.md --user user.md`
+
+See `AGENT.md` for full design and configuration.

@@ -1,0 +1,2 @@
+[console_scripts]
+vcer = vcer.__main__:main

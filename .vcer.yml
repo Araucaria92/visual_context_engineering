@@ -1,0 +1,62 @@
+version: 0.1
+language: ko
+
+backends:
+  - id: local-vllm
+    kind: vllm
+    base_url: http://localhost:8000
+    model: Qwen2-7B-Instruct
+    timeout_ms: 60000
+  - id: local-sglang
+    kind: sglang
+    base_url: http://localhost:30000
+    model: Llama-3-8B-Instruct
+    timeout_ms: 60000
+  - id: local-ollama
+    kind: ollama
+    base_url: http://localhost:11434
+    model: deepseek-r1-2507-qwen-8b
+    timeout_ms: 60000
+  - id: local-ollama-openai
+    kind: openai
+    base_url: http://localhost:11434
+    model: gpt-oss:20b
+    timeout_ms: 60000
+    headers:
+      Authorization: Bearer ollama
+
+router:
+  strategy: round_robin
+  health_check_interval_ms: 5000
+  weights:
+    local-vllm: 1.0
+    local-sglang: 1.0
+
+analyze:
+  detectors:
+    headers:
+      task: ["^##\\s*Task$", "^###\\s*Task$"]
+      constraints: ["^##\\s*Constraints$", "^###\\s*Constraints$"]
+      output_format: ["^##\\s*Output\\s*Format$"]
+      few_shot: ["^##\\s*(Few[- ]?Shot|Examples)$"]
+    tags:
+      open: "\\[part:(?P<name>[a-z_]+)\\]"
+      close: "\\[/part\\]"
+  merge_adjacent: true
+  tolerate_overlap: false
+
+optimize:
+  order: [title, task, constraints, tools, output_format, few_shot, evaluation, guardrails, metadata, retrieval]
+  rewrite:
+    preserve_style: true
+    max_diff_ratio: 0.25
+
+visualize:
+  theme: dark
+  mermaid:
+    direction: LR
+    wrap: 60
+
+limits:
+  max_context_tokens: 120000
+  max_examples: 8

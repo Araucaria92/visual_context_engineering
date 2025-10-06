@@ -1,0 +1,34 @@
+{
+  "system_file": "examples\\system.md",
+  "user_file": "examples\\user.md",
+  "parts": [
+    {
+      "name": "task",
+      "content": "Summarize and restructure user instructions into an optimal system prompt layout.",
+      "source": "header",
+      "start_line": 5,
+      "end_line": 7
+    },
+    {
+      "name": "constraints",
+      "content": "- Keep responses under 10 lines unless necessary.\n- Use clear section headers when it helps clarity.\n\n## Tools\n- None",
+      "source": "header",
+      "start_line": 8,
+      "end_line": 14
+    },
+    {
+      "name": "output_format",
+      "content": "Return a Markdown document with sections: Title, Task, Constraints, Output Format.\n\n## Few-Shot Examples\nInput:\n\"\"\"\nThe user provides system and user prompts and wants optimal ordering.\n\"\"\"\nOutput:\n\"\"\"",
+      "source": "header",
+      "start_line": 15,
+      "end_line": 24
+    },
+    {
+      "name": "task",
+      "content": "Reorder prompt parts for clarity and safety.\n\"\"\"\n\n## Evaluation\n- Task first, then constraints, then format, then examples.\n\n## Guardrails\n- Avoid unsafe or private data requests.\n\n## Metadata\nlanguage: ko\ntone: concise",
+      "source": "header",
+      "start_line": 25,
+      "end_line": 38
+    }
+  ]
+}

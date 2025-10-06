@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+src/vcer/__init__.py
+src/vcer/__main__.py
+src/vcer/cli.py
+src/vcer.egg-info/PKG-INFO
+src/vcer.egg-info/SOURCES.txt
+src/vcer.egg-info/dependency_links.txt
+src/vcer.egg-info/entry_points.txt
+src/vcer.egg-info/requires.txt
+src/vcer.egg-info/top_level.txt
+src/vcer/adapters/router.py
+src/vcer/config/loader.py
+src/vcer/core/analyzer.py
+src/vcer/core/optimizer.py
+src/vcer/core/parts.py
+src/vcer/visualize/mermaid.py
