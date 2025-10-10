@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCER - Semantic Payload Analyzer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        h1 {
+            color: #1c1e21;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        textarea {
+            width: 100%;
+            height: 250px;
+            border-radius: 6px;
+            border: 1px solid #dddfe2;
+            padding: 12px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #166fe5;
+        }
+        #result-display {
+            margin-top: 1.5rem;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            padding: 1rem;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        /* Category Colors */
+        .cat-1-1 { background-color: rgba(67, 139, 224, 0.2); } /* Identity & Persona */
+        .cat-1-2 { background-color: rgba(67, 139, 224, 0.3); } /* Core Mission & Goals */
+        .cat-1-3 { background-color: rgba(67, 139, 224, 0.4); } /* Operational Policies & Guardrails */
+        .cat-2-1 { background-color: rgba(82, 182, 154, 0.2); } /* Immediate Task & Input */
+        .cat-2-2 { background-color: rgba(82, 182, 154, 0.3); } /* Situational Awareness & Memory */
+        .cat-2-3 { background-color: rgba(82, 182, 154, 0.4); } /* External Knowledge - RAG */
+        .cat-3-1 { background-color: rgba(245, 188, 89, 0.3); } /* Output Schema */
+        .cat-3-2 { background-color: rgba(245, 188, 89, 0.4); } /* Response Guidelines */
+        .cat-misc { background-color: rgba(150, 150, 150, 0.2); } /* Miscellaneous */
+
+        .cat-span {
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Semantic Payload Analyzer</h1>
+
+        <div class="backend-selector">
+            <input type="radio" id="gemini" name="backend" value="gemini" checked>
+            <label for="gemini">Gemini API</label>
+            <input type="radio" id="custom" name="backend" value="custom">
+            <label for="custom">Custom LLM</label>
+        </div>
+
+        <div id="custom-llm-fields" style="display: none;">
+            <input type="text" id="model-url" placeholder="Enter Model URL (e.g., http://localhost:8000/v1/chat/completions)">
+            <input type="text" id="model-name" placeholder="Enter Model Name">
+        </div>
+
+        <textarea id="payload-input" placeholder="Enter LLM payload here..."></textarea>
+        <button id="analyze-button">Analyze</button>
+        <div id="result-display"></div>
+    </div>
+
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript">
+        document.querySelectorAll('input[name="backend"]').forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                document.getElementById('custom-llm-fields').style.display = event.target.value === 'custom' ? 'block' : 'none';
+            });
+        });
+
+        document.getElementById('analyze-button').addEventListener('click', () => {
+            const payload = document.getElementById('payload-input').value;
+            const resultDisplay = document.getElementById('result-display');
+            const button = document.getElementById('analyze-button');
+
+            const backend = document.querySelector('input[name="backend"]:checked').value;
+            const modelUrl = document.getElementById('model-url').value;
+            const modelName = document.getElementById('model-name').value;
+
+            if (!payload.trim()) {
+                resultDisplay.textContent = 'Please enter a payload to analyze.';
+                return;
+            }
+
+            resultDisplay.textContent = 'Analyzing...';
+            button.disabled = true;
+
+            const analysis_details = {
+                payload: payload,
+                backend: backend,
+                url: modelUrl,
+                model: modelName
+            };
+
+            // Call the exposed Python function with details
+            eel.analyze_semantic_payload(analysis_details)((result) => {
+                button.disabled = false;
+                if (result.error) {
+                    resultDisplay.textContent = `Error: ${result.error}`;
+                } else {
+                    renderResults(result);
+                }
+            });
+        });
+
+        function renderResults(data) {
+            const resultDisplay = document.getElementById('result-display');
+            resultDisplay.innerHTML = ''; // Clear previous results
+
+            if (!data || data.length === 0) {
+                resultDisplay.textContent = 'No analysis results returned.';
+                return;
+            }
+
+            data.forEach(item => {
+                const span = document.createElement('span');
+                const category = item.category || '기타 (Miscellaneous)';
+                const content = item.content || '';
+
+                span.textContent = content;
+                span.className = 'cat-span ' + getCategoryClass(category);
+                resultDisplay.appendChild(span);
+            });
+        }
+
+        function getCategoryClass(category) {
+            if (category.includes('1.1')) return 'cat-1-1';
+            if (category.includes('1.2')) return 'cat-1-2';
+            if (category.includes('1.3')) return 'cat-1-3';
+            if (category.includes('2.1')) return 'cat-2-1';
+            if (category.includes('2.2')) return 'cat-2-2';
+            if (category.includes('2.3')) return 'cat-2-3';
+            if (category.includes('3.1')) return 'cat-3-1';
+            if (category.includes('3.2')) return 'cat-3-2';
+            return 'cat-misc';
+        }
+    </script>
+</body>
+</html>

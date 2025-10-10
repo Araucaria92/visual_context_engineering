@@ -8,9 +8,10 @@ import typer
 from rich.console import Console
 
 from .config.loader import load_config
-from .core.analyzer import analyze_files
+from .core.analyzer import analyze_files, analyze_payload_semantically
 from .core.optimizer import optimize_parts, render_markdown
-from .visualize.mermaid import parts_to_mermaid
+from .visualize.mermaid import parts_to_mermaid, semantic_parts_to_mermaid
+from .visualize.terminal import visualize_semantic_parts_in_terminal
 from .adapters.router import build_request, load_backend
 
 
@@ -29,6 +30,53 @@ def analyze(
     results = analyze_files(in_, user, cfg)
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     console.print(f"Wrote parts → {out}")
+
+
+@app.command("analyze-semantic")
+def analyze_semantic(
+    payload_file: Path = typer.Option(
+        ...,
+        "--payload",
+        "-p",
+        help="Path to the LLM payload text file to analyze.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    output_file: Path = typer.Option(
+        "payload_diagram.mmd",
+        "--out",
+        "-o",
+        help="Path to save the resulting Mermaid (.mmd) file.",
+    ),
+):
+    """
+    Analyzes an LLM payload semantically and visualizes it.
+    """
+    console.print(f"[cyan]Analyzing file '{payload_file}' semantically...[/cyan]")
+    
+    try:
+        payload_content = payload_file.read_text(encoding="utf-8")
+    except Exception as e:
+        console.print(f"[bold red]File read error: {e}[/bold red]")
+        raise typer.Exit(code=1)
+
+    try:
+        # Analyze with LLM
+        classified_data = analyze_payload_semantically(payload_content)
+
+        # Visualize in terminal
+        visualize_semantic_parts_in_terminal(classified_data, console)
+
+        # Generate and save Mermaid diagram
+        mermaid_diagram = semantic_parts_to_mermaid(classified_data)
+        output_file.write_text(mermaid_diagram, encoding="utf-8")
+        console.print(f"\n[bold green]Mermaid diagram saved to '{output_file}'[/bold green]")
+
+    except Exception as e:
+        console.print(f"[bold red]An error occurred during semantic analysis: {e}[/bold red]")
+        raise typer.Exit(code=1)
 
 
 @app.command()
